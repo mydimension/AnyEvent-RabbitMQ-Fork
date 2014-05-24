@@ -1,0 +1,54 @@
+# vim: ft=config
+severity = cruel
+theme = pbp || core || bugs
+pager = less
+verbose = %f: [%p] %m at line %l, column %c.  (Severity: %s)\n
+exclude = Documentation
+
+[TestingAndDebugging::RequireUseStrict]
+equivalent_modules = Moo
+[TestingAndDebugging::RequireUseWarnings]
+equivalent_modules = Moo
+[TestingAndDebugging::ProhibitNoWarnings]
+allow_with_category_restriction = 1
+[TestingAndDebugging::ProhibitNoStrict]
+allow = vars subs refs
+
+[Variables::RequireLocalizedPunctuationVars]
+allow = @ARGV $ARGV $0
+
+[Subroutines::RequireArgUnpacking]
+short_subroutine_statements = 5
+allow_subscripts = 1
+
+[Subroutines::ProhibitUnusedPrivateSubroutines]
+private_name_regex = _(?!build_|handle_)\w+
+
+[Subroutines::ProhibitExcessComplexity]
+max_mccabe = 30
+[Modules::ProhibitExcessMainComplexity]
+max_mccabe = 30
+
+[ErrorHandling::RequireCarping]
+severity = brutal
+
+[BuiltinFunctions::ProhibitComplexMappings]
+max_statements = 2
+
+[InputOutput::RequireBriefOpen]
+lines = 15
+
+[-ControlStructures::ProhibitPostfixControls]
+[-ControlStructures::ProhibitUnlessBlocks]
+[-ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions]
+[-Modules::ProhibitMultiplePackages]
+[-Modules::RequireVersionVar]
+[-References::ProhibitDoubleSigils]
+[-RegularExpressions::RequireDotMatchAnything]
+[-RegularExpressions::RequireExtendedFormatting]
+[-RegularExpressions::RequireLineBoundaryMatching]
+[-Subroutines::ProhibitBuiltinHomonyms]
+[-ValuesAndExpressions::ProhibitConstantPragma]
+[-Variables::ProhibitPackageVars]
+[-Variables::ProhibitPunctuationVars]
+[-Modules::RequireExplicitPackage]

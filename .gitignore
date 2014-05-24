@@ -1,0 +1,4 @@
+AnyEvent-RabbitMQ-Fork-*
+.build/
+blib/
+cover_db/
