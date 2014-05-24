@@ -2,6 +2,12 @@ package AnyEvent::RabbitMQ::Fork;
 
 # ABSTRACT: Run AnyEvent::RabbitMQ inside AnyEvent::Fork(::RPC)
 
+=head1 NAME
+
+AnyEvent::RabbitMQ::Fork - Run AnyEvent::RabbitMQ inside AnyEvent::Fork(::RPC)
+
+=cut
+
 use Moo;
 use Types::Standard qw(CodeRef Str HashRef InstanceOf Bool);
 use Scalar::Util qw(weaken);
@@ -157,7 +163,7 @@ sub _on_event {
     return;
 }
 
-sub _handle_callback {
+sub _handle_callback {    ## no critic (Subroutines::RequireArgUnpacking)
     my $self = shift;
     my $sig  = shift;
     my ($id, $event, $method, $pkg) = @$sig;
@@ -173,8 +179,10 @@ sub _handle_callback {
             } elsif ($class eq 'AnyEvent::RabbitMQ::Channel') {
                 my $channel_id = shift @args;
                 $_[0] = $self->channels->{$channel_id}
-                  ||= $self->channel_class->new(id => $channel_id,
-                    conn => $self);
+                  ||= $self->channel_class->new(
+                    id   => $channel_id,
+                    conn => $self
+                  );
             } else {
                 croak "Unknown class type: '$class'";
             }
