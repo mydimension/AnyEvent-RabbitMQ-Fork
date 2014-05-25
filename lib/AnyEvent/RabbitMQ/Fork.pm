@@ -26,6 +26,63 @@ use Net::AMQP;
 
 use AnyEvent::RabbitMQ::Fork::Channel;
 
+=head1 SYNOPSIS
+
+  use AnyEvent::RabbitMQ::Fork;
+
+  my $cv = AnyEvent->condvar;
+
+  my $ar = AnyEvent::RabbitMQ::Fork->new->load_xml_spec()->connect(
+      host       => 'localhost',
+      port       => 5672,
+      user       => 'guest',
+      pass       => 'guest',
+      vhost      => '/',
+      timeout    => 1,
+      tls        => 0, # Or 1 if you'd like SSL
+      tune       => { heartbeat => 30, channel_max => $whatever, frame_max = $whatever },
+      on_success => sub {
+          my $ar = shift;
+          $ar->open_channel(
+              on_success => sub {
+                  my $channel = shift;
+                  $channel->declare_exchange(
+                      exchange   => 'test_exchange',
+                      on_success => sub {
+                          $cv->send('Declared exchange');
+                      },
+                      on_failure => $cv,
+                  );
+              },
+              on_failure => $cv,
+              on_close   => sub {
+                  my $method_frame = shift->method_frame;
+                  die $method_frame->reply_code, $method_frame->reply_text;
+              },
+          );
+      },
+      on_failure => $cv,
+      on_read_failure => sub { die @_ },
+      on_return  => sub {
+          my $frame = shift;
+          die "Unable to deliver ", Dumper($frame);
+      },
+      on_close   => sub {
+          my $why = shift;
+          if (ref($why)) {
+              my $method_frame = $why->method_frame;
+              die $method_frame->reply_code, ": ", $method_frame->reply_text;
+          }
+          else {
+              die $why;
+          }
+      },
+  );
+
+  print $cv->recv, "\n";
+
+=cut
+
 has verbose => (is => 'rw', isa => Bool, default => 0);
 has is_open => (is => 'ro', isa => Bool, default => 0);
 has login_user        => (is => 'ro', isa => Str);
@@ -84,6 +141,17 @@ sub _build_rpc {
       );
 }
 
+=head1 DESCRIPTION
+
+This module is mean't to be a close to a drop-in facade for running
+L<AnyEvent::RabbitMQ> in a background process via L<AnyEvent::Fork::RPC>.
+
+Tha main use case is for programs where other operations block with little
+control due to difficulty/laziness. In this way, the process hosting the
+connection RabbitMQ is doing nothing else but processing messages.
+
+=cut
+
 my $cb_id = 'a';    # textual ++ gives a bigger space than numerical ++
 
 sub _delegate {
@@ -114,10 +182,39 @@ sub _delegate {
     return $self;
 }
 
+=head1 CONSTRCTOR
+
+    my $ar = AnyEvent::RabbitMQ::Fork->new();
+
+=head2 Options
+
+=over
+
+=item verbose [Bool]
+
+Prints a LOT of debugging information to C<STDOUT>.
+
+=back
+
+=cut
+
 before verbose => sub {
     return if @_ < 2;
     $_[0]->_delegate(verbose => 0, $_[1]);
 };
+
+=head1 METHODS
+
+=over
+
+=item load_xml_spec([$amqp_spec_xml_path])
+
+Declare and load the AMQP Specification you wish to use. The default id to use
+version 0.9.1 with RabbitMQ specific extensions.
+
+B<Returns: $self>
+
+=cut
 
 my $_loaded_spec;
 sub load_xml_spec {
@@ -134,6 +231,87 @@ sub load_xml_spec {
 
     return $self->_delegate(load_xml_spec => 0, $spec);
 }
+
+=item connect(%opts)
+
+Open connection to an AMQP server to begin work.
+
+Arguments:
+
+=over
+
+=item B<host>
+
+=item B<port>
+
+=item B<user>
+
+=item B<pass>
+
+=item B<vhost>
+
+=item B<timeout> TCP timeout in seconds. Default: use L<AnyEvent::Socket> default
+
+=item B<tls> Boolean to use SSL/TLS or not. Default: 0
+
+=item B<tune> Hash: (values are negotiated with the server)
+
+=over
+
+=item B<heartbeat> Heartbeat interval in seconds. Default: 0 (off)
+
+=item B<channel_max> Maximum channel ID. Default: 65536
+
+=item B<frame_max> Maximum frame size in bytes. Default: 131072
+
+=back
+
+=item B<on_success> Callback when the connection is successfully established.
+
+=item B<on_failure> Called when a failure occurs over the lifetime of the connection.
+
+=item B<on_read_failure> Called when there is a problem reading response from the server.
+
+=item B<on_return> Called if the server returns a published message.
+
+=item B<on_close> Called when the connection is closed remotely.
+
+=back
+
+B<Returns: $self>
+
+=item open_channel(%opts)
+
+Open a logical channel which is where all the AMQP fun is.
+
+Arguments:
+
+=over
+
+=item B<on_success> Called when the channel is open and ready for use.
+
+=item B<on_failure> Called if there is a problem opening the channel.
+
+=item B<on_close> Called when the channel is closed.
+
+=back
+
+=item close(%opts)
+
+Close this connection.
+
+=over
+
+=item B<on_success> Called on successful shutdown.
+
+=item B<on_failure> Called on failed shutdown. Note: the connection is still
+closed after this
+
+=back
+
+=back
+
+=cut
 
 foreach my $method (qw(connect open_channel close)) {
     no strict 'refs';
@@ -276,5 +454,19 @@ sub DEMOLISH {
 
     return;
 }
+
+=head1 AUTHOR
+
+William Cox <mydimension@gmail.com>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2014, the above named author(s).
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+=cut
 
 1;
