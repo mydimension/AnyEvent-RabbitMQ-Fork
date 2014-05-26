@@ -1,5 +1,15 @@
 package AnyEvent::RabbitMQ::Fork::Worker;
 
+=head1 NAME
+
+AnyEvent::RabbitMQ::Fork::Worker - Fork side magic
+
+=head1 DESCRIPTION
+
+No user serviceable parts inside. Venture at your own risk.
+
+=cut
+
 use Moo;
 use Types::Standard qw(InstanceOf Bool);
 use Guard;
@@ -144,6 +154,20 @@ sub _cb_hooks {
 
     return;
 }
+
+=head1 AUTHOR
+
+William Cox <mydimension@gmail.com>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2014, the above named author(s).
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
+
+=cut
 
 package    # hide from PAUSE
   AnyEvent::RabbitMQ::Fork::Worker::TieScalar;
