@@ -115,10 +115,11 @@ has cb_registry => (
 );
 
 has rpc => (
-    is       => 'lazy',
-    isa      => CodeRef,
-    clearer  => 1,
-    init_arg => undef,
+    is        => 'lazy',
+    isa       => CodeRef,
+    predicate => 1,
+    clearer   => 1,
+    init_arg  => undef,
 );
 
 sub _build_rpc {
@@ -449,8 +450,13 @@ sub _on_destroy {
 sub DEMOLISH {
     my ($self, $in_gd) = @_;
     return if $in_gd;
+    return unless $self->has_rpc;
 
-    $self->_delegate(DEMOLISH => 0);
+    $self->rpc->(DEMOLISH => 0, my $cv = AE::cv);
+
+    $cv->recv;
+
+    $self->clear_rpc;
 
     return;
 }
