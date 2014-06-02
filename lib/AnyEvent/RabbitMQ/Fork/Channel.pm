@@ -92,6 +92,7 @@ foreach my $method (@methods) {
     *$method = sub {
         my $self = shift;
         $self->delegate($method => $self->id, @_);
+        return $self;
     };
 }
 
