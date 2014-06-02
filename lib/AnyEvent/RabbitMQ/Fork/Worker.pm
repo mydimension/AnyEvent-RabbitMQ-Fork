@@ -85,6 +85,15 @@ sub run {
                         _cb_hooks($obj);
                     }
 
+                    if ($isa eq 'AnyEvent::RabbitMQ') {
+                        # replace with our own handling
+                        $obj->{_handle}->on_drain(
+                            sub {
+                                AnyEvent::Fork::RPC::event('cdw');
+                            }
+                        );
+                    }
+
                     unshift @_,
                       \[
                         $isa,
