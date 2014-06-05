@@ -380,8 +380,8 @@ sub _handle_callback {    ## no critic (Subroutines::RequireArgUnpacking)
                 my $channel_id = shift @args;
                 $_[0] = $self->channels->{$channel_id}
                   ||= $self->channel_class->new(
-                    id   => $channel_id,
-                    conn => $self
+                    id         => $channel_id,
+                    connection => $self
                   );
             } else {
                 croak "Unknown class type: '$class'";

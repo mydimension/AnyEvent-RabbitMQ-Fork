@@ -50,7 +50,7 @@ has id         => (is => 'ro', isa => Int);
 has is_open    => (is => 'ro', isa => Bool, default => 0);
 has is_active  => (is => 'ro', isa => Bool, default => 0);
 has is_confirm => (is => 'ro', isa => Bool, default => 0);
-has conn => (
+has connection => (
     is       => 'ro',
     isa      => Object,
     weak_ref => 1,
