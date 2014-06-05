@@ -93,8 +93,8 @@ has channel_class   => (is => 'lazy', isa => Str);
 has worker_function => (is => 'lazy', isa => Str);
 has init_function   => (is => 'lazy', isa => Str);
 
-sub _build_worker_class    { return ref($_[0]) . '::Worker' }
-sub _build_channel_class   { return ref($_[0]) . '::Channel' }
+sub _build_worker_class    { return __PACKAGE__ . '::Worker' }
+sub _build_channel_class   { return __PACKAGE__ . '::Channel' }
 sub _build_worker_function { return $_[0]->worker_class . '::run' }
 sub _build_init_function   { return $_[0]->worker_class . '::init' }
 
