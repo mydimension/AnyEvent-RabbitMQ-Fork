@@ -82,7 +82,8 @@ sub run {
                             AnyEvent::Fork::RPC::event(chd => $id);
                         };
 
-                        _cb_hooks($obj);
+                        # needs to be done parent registers channel
+                        AE::postpone { _cb_hooks($obj) };
                     }
 
                     if ($isa eq 'AnyEvent::RabbitMQ') {
