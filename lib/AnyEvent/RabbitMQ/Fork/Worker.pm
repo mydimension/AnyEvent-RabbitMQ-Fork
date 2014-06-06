@@ -152,7 +152,8 @@ sub _cb_hooks {
       ? ('connection', $cb_hooks{connection})
       : ($obj->id, $cb_hooks{channel});
 
-    while (my ($prop, $method) = each %$hooks) {
+    foreach my $prop (keys %$hooks) {
+        my $method = $hooks->{$prop};
         ## no critic (Miscellanea::ProhibitTies)
         tie $obj->{$prop}, 'AnyEvent::RabbitMQ::Fork::Worker::TieScalar',
           $obj->{$prop}, sub {
@@ -184,7 +185,7 @@ package    # hide from PAUSE
 use strict;
 use warnings;
 
-sub TIESCALAR { return bless [$_[1], $_[2]] => $_[0] }
+sub TIESCALAR { $_[2]->(); return bless [$_[1], $_[2]] => $_[0] }
 sub FETCH { return $_[0][0] }
 sub STORE { $_[0][1]->(); return $_[0][0] = $_[1] }
 sub DESTROY { return @{ $_[0] } = () }
