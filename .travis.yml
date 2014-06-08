@@ -7,6 +7,9 @@ perl:
     - 5.10
     - 5.8
 
+services:
+    - rabbitmq
+
 before_install:
     - git config --global user.name "TavisCI"
 
