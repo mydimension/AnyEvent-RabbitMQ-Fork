@@ -10,7 +10,7 @@ BEGIN { use_ok 'AnyEvent::RabbitMQ::Fork'; }
 use AnyEvent;
 
 use constant VERBOSE  => 0;
-use constant TO_SEND => 100_000;
+use constant TO_SEND  => 10_000;
 use constant TO_CHECK => TO_SEND / 10;
 
 my $final = AE::cv;
@@ -28,8 +28,7 @@ my $consume_cb = do {
         }
 
         $consumer_ch->ack(
-            delivery_tag => $message->{deliver}->method_frame->delivery_tag,
-        );
+            delivery_tag => $message->{deliver}->method_frame->delivery_tag);
 
         $final->send('fin') if $i == TO_SEND;
     };
@@ -107,9 +106,9 @@ $cv->recv;
 
 isa_ok $producer_ch, 'AnyEvent::RabbitMQ::Fork::Channel';
 
-ok $producer->is_open,        'producer is_open';
-ok $producer_ch->is_open,     'producer channel is_open';
-ok $producer_ch->is_active,   'producer channel is_active';
+ok $producer->is_open,       'producer is_open';
+ok $producer_ch->is_open,    'producer channel is_open';
+ok $producer_ch->is_active,  'producer channel is_active';
 ok $producer_ch->is_confirm, 'producer channel is_confirm';
 
 $cv = AE::cv;
