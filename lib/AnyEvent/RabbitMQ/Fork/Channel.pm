@@ -67,6 +67,8 @@ my @methods = qw(
   open
   close
   declare_exchange
+  bind_exchange
+  unbind_exchange
   delete_exchange
   declare_queue
   bind_queue
