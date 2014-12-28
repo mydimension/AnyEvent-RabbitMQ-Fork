@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.5       2014-12-28 17:38:10-05:00 America/New_York
     - update test suite to align with AnyEvent::RabbitMQ
     - support bind_exchange & unbind_exchange methods
     - in Worker: generate stand-in callbacks in a separate method
