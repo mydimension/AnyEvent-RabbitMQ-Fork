@@ -17,7 +17,7 @@ use Scalar::Util qw(weaken blessed);
 
 use namespace::clean;
 
-use AnyEvent::RabbitMQ;
+use AnyEvent::RabbitMQ 1.18;
 
 has verbose => (is => 'rw', isa => Bool, default => 0);
 
