@@ -168,7 +168,7 @@ sub _generate_callback {
         # these values don't pass muster with Storable
         delete local @{ $_[0] }{ 'fh', 'on_error', 'on_drain' }
           if $method eq 'connect'
-          and $event = 'on_failure'
+          and $event eq 'on_failure'
           and blessed $_[0];
 
         # tell the parent to run the users callback known by $sig
