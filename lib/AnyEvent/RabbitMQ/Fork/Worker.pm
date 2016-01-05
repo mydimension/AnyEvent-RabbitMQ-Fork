@@ -138,7 +138,8 @@ sub _generate_callback {
 
         $wself->clear_connection if $should_clear_connection;
 
-        if ((my $isa = blessed $_[0] || q{}) =~ /^AnyEvent::RabbitMQ/) {
+        my $isa = blessed $_[0] || q{};
+        if ($isa =~ /^AnyEvent::RabbitMQ/) {
             # we put our sentry value in place later
             my $obj = shift;
 
@@ -167,9 +168,7 @@ sub _generate_callback {
 
         # these values don't pass muster with Storable
         delete local @{ $_[0] }{ 'fh', 'on_error', 'on_drain' }
-          if $method eq 'connect'
-          and $event eq 'on_failure'
-          and blessed $_[0];
+          if $isa eq 'AnyEvent::Handle';
 
         # tell the parent to run the users callback known by $sig
         AnyEvent::Fork::RPC::event(cb => $sig, @_);
