@@ -65,24 +65,21 @@ sub run {
         }
     }
 
+    my @error;
     if (defined $ch_id and my $ch = $self->channels->{ $ch_id }) {
         $ch->$method(@args ? @args : %args);
-
-        $done->();
     } elsif (defined $ch_id and $ch_id == 0) {
         if ($method eq 'DEMOLISH') {
             $self->clear_connection;
         } else {
             $self->connection->$method(@args ? @args : %args);
         }
-
-        $done->();
     } else {
         $ch_id ||= '<undef>';
-        $done->("Unknown channel: '$ch_id'");
+        push @error, "Unknown channel: '$ch_id'";
     }
 
-    return;
+    return $done->(@error);
 }
 
 my %cb_hooks = (
