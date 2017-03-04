@@ -118,10 +118,16 @@ sub _cb_hooks {
 sub _generate_callback {
     my ($self, $method, $event, $sig) = @_;
 
+    my $is_rmq = (my $is_conn = $sig->[-1] eq 'AnyEvent::RabbitMQ')
+      or (my $is_ch = $sig->[-1] eq 'AnyEvent::RabbitMQ::Channel');
+
     my $should_clear_connection = (
-        $sig->[-1] eq 'AnyEvent::RabbitMQ' and ($method eq 'close'
+        $is_conn and ($method eq 'close'
             or ($method eq 'connect' and $event eq 'on_close'))
-    ) ? 1 : 0;
+    );
+
+    my $open_channel_sucess
+      = ($is_conn and $method eq 'open_channel' and $event eq 'on_success');
 
     my $guard = guard {
         # inform parent process that this callback is no longer needed
@@ -135,12 +141,13 @@ sub _generate_callback {
 
         $wself->clear_connection if $should_clear_connection;
 
-        my $isa = blessed $_[0] || q{};
-        if ($isa =~ /^AnyEvent::RabbitMQ/) {
+        if ($is_rmq) {
             # we put our sentry value in place later
             my $obj = shift;
+            # this is our signal back to the parent as to what kind of object it was
+            unshift @_, \[$sig->[-1], ($is_ch ? $obj->id : ())];
 
-            if ($method eq 'open_channel' and $event eq 'on_success') {
+            if ($open_channel_sucess) {
                 my $id = $obj->id;
                 $obj->{"_$wself\_guard"} ||= guard {
                     # channel was GC'd by AE::RMQ
@@ -151,21 +158,15 @@ sub _generate_callback {
                 AE::postpone { _cb_hooks($obj) };
             }
 
-            if ($isa eq 'AnyEvent::RabbitMQ') {
+            if ($is_conn) {
                 # replace with our own handling
                 $obj->{_handle}
                   ->on_drain(sub { AnyEvent::Fork::RPC::event('cdw') });
             }
-
-            # this is our signal back to the parent as to what kind of object
-            # it was
-            unshift @_,
-              \[$isa, ($isa eq 'AnyEvent::RabbitMQ::Channel' ? $obj->id : ())];
+        } elsif ((blessed $_[0] || q{}) eq 'AnyEvent::Handle') {
+            # these values don't pass muster with Storable
+            delete local @{ $_[0] }{ 'fh', 'on_error', 'on_drain' };
         }
-
-        # these values don't pass muster with Storable
-        delete local @{ $_[0] }{ 'fh', 'on_error', 'on_drain' }
-          if $isa eq 'AnyEvent::Handle';
 
         # tell the parent to run the users callback known by $sig
         AnyEvent::Fork::RPC::event(cb => $sig, @_);
