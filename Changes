@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.6       2020-07-26 14:02:30-04:00 America/New_York
     - fix operator typo in _generate_callback
     - redundant code cleanup
     - simplify logic in _generate_callback
